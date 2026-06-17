@@ -827,6 +827,19 @@ window.addEventListener('DOMContentLoaded',function(){
     toast('Erro de inicializacao: '+sbEx.message,'err');
   }
 
+  // Forca esconder o slideshow em mobile via JS (seguranca extra alem do CSS)
+  function enforceShowVisibility(){
+    var gs=G('gShow');
+    if(!gs)return;
+    if(window.innerWidth<900){
+      gs.style.setProperty('display','none','important');
+    } else {
+      gs.style.removeProperty('display');
+    }
+  }
+  enforceShowVisibility();
+  window.addEventListener('resize',enforceShowVisibility);
+
   // Load showcase slideshow (public preview, no login needed) - nao bloqueia o resto
   try{loadShowcase();}catch(showEx){console.error('Showcase error:',showEx);}
 
@@ -1050,6 +1063,10 @@ function buildShowcase(){
   });
 
   startSlideshowRotation();
+
+  // Garante visibilidade correta apos popular conteudo
+  var gs=G('gShow');
+  if(gs&&window.innerWidth<900)gs.style.setProperty('display','none','important');
 }
 
 function buildMosaicFallback(posters){
