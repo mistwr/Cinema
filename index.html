@@ -68,11 +68,14 @@ button{cursor:pointer;border:none;background:none;color:inherit;font-family:inhe
 
 /* ── RIGHT: AUTH PANEL ── */
 .g-panel{
-  flex:1;min-width:400px;max-width:480px;
+  flex:1;width:100%;max-width:480px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:#080808;position:relative;padding:40px;
   background-image:radial-gradient(ellipse 100% 60% at 50% 0%,rgba(229,9,20,.12) 0%,transparent 65%);
+  overflow-y:auto;
 }
+@media(min-width:900px){.g-panel{min-width:400px}}
+@media(max-width:480px){.g-panel{padding:24px}.g-wordmark{font-size:52px}}
 .g-logo{margin-bottom:32px;text-align:center}
 .g-wordmark{
   font-family:'Playfair Display',serif;font-size:64px;font-weight:900;
@@ -990,7 +993,12 @@ async function loadShowcase(){
       var l=lines[i].trim();
       if(l.indexOf('#EXTINF')===0){
         cur={};
-        var logo=l.match(/tvg-logo="([^"]*)"/i);if(logo&&logo[1]&&logo[1].indexOf('http')===0)cur.ico=logo[1].trim();
+        var logo=l.match(/tvg-logo="([^"]*)"/i);if(logo&&logo[1]&&logo[1].indexOf('http')===0){
+          var icoUrl=logo[1].trim();
+          // Rewrite para o proxy se for do servidor Xtream direto
+          icoUrl=icoUrl.replace('https://campelo.c2018.xyz:443',PROXY).replace('http://campelo.c2018.xyz:443',PROXY);
+          cur.ico=icoUrl;
+        }
         var grp=l.match(/group-title="([^"]*)"/i);if(grp)cur.cat=grp[1].trim();
       } else if(l.length>5&&l.charAt(0)!=='#'){
         var g=(cur.cat||'').toLowerCase(),u=l.toLowerCase();
@@ -1280,7 +1288,9 @@ function parseM3U(txt){
       cur={};
       var nm=l.match(/,(.+)$/);if(nm)cur.name=nm[1].trim();
       var grp=l.match(/group-title="([^"]*)"/i);if(grp)cur.cat=grp[1].trim();
-      var logo=l.match(/tvg-logo="([^"]*)"/i);if(logo&&logo[1]&&logo[1].indexOf('http')===0)cur.ico=logo[1].trim();
+      var logo=l.match(/tvg-logo="([^"]*)"/i);if(logo&&logo[1]&&logo[1].indexOf('http')===0){
+        cur.ico=logo[1].trim().replace('https://campelo.c2018.xyz:443',PROXY).replace('http://campelo.c2018.xyz:443',PROXY);
+      }
     } else if(l.length>5&&l.charAt(0)!=='#'){
       cur.url=l.trim();cur.id=++idx;
       cur.name=cur.name||('Item '+idx);cur.cat=cur.cat||'Geral';cur.ico=cur.ico||'';
