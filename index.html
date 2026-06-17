@@ -344,6 +344,7 @@ button{cursor:pointer;border:none;background:none;color:inherit;font-family:inhe
 .gview{padding:0 24px 60px}
 @media(max-width:600px){.gview{padding:0 12px 60px}}
 .gv-hdr{padding-top:8px;margin-bottom:20px}
+.gv-hdr .back-btn{margin-bottom:16px}
 .gv-title{font-family:'Playfair Display',serif;font-size:30px;font-weight:900;letter-spacing:-.5px;margin-bottom:14px}
 .gv-count{font-size:13px;color:var(--t3);font-weight:400}
 
@@ -520,6 +521,28 @@ button{cursor:pointer;border:none;background:none;color:inherit;font-family:inhe
   color:var(--t2);font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;transition:.15s;
 }
 .ps-manage:hover{border-color:#fff;color:#fff}
+.ps-actions{display:flex;gap:12px;justify-content:center}
+.ps-logout-corner{
+  position:absolute;top:20px;right:20px;z-index:10;
+  display:flex;align-items:center;gap:6px;padding:9px 16px;
+  background:rgba(255,255,255,.06);border:1px solid var(--bdr2);border-radius:20px;
+  color:var(--t2);font-size:12px;font-weight:600;transition:.15s;
+}
+.ps-logout-corner:hover{background:rgba(229,9,20,.15);color:var(--acc);border-color:rgba(229,9,20,.3)}
+
+/* BACK BUTTON (universal, usado em varias paginas) */
+.back-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 16px 9px 12px;background:rgba(255,255,255,.06);border:1px solid var(--bdr2);
+  border-radius:20px;color:var(--t2);font-size:13px;font-weight:600;transition:.15s;flex-shrink:0;
+}
+.back-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+.back-btn-ic{font-size:16px;line-height:1}
+
+@media(max-width:600px){
+  .ps-logout-corner{top:14px;right:14px;padding:7px 13px;font-size:11px}
+  .ps-logout-corner span.lbl{display:none}
+}
 
 /* PROFILE EDIT MODAL */
 #profileModal{
@@ -562,10 +585,21 @@ button{cursor:pointer;border:none;background:none;color:inherit;font-family:inhe
 .tb-profile-name{font-size:12px;font-weight:600;color:var(--t1);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 @media(max-width:600px){
-  .ps-title{font-size:24px}
-  .ps-avatar,.ps-add-ic{width:76px;height:76px;font-size:32px}
-  .ps-item,.ps-add{width:88px}
-  .ps-grid{gap:14px}
+  #profileSelect{padding:60px 16px 24px;align-items:flex-start}
+  .ps-title{font-size:22px;margin-bottom:24px}
+  .ps-avatar,.ps-add-ic{width:72px;height:72px;font-size:30px}
+  .ps-item,.ps-add{width:80px}
+  .ps-grid{gap:12px;margin-bottom:28px}
+  .ps-wrap .g-logo{margin-bottom:28px!important}
+  .pm-card{padding:24px 20px}
+  .pm-emoji-grid{gap:6px}
+  .pm-emoji-opt{width:34px;height:34px;font-size:16px}
+}
+
+@media(max-width:380px){
+  .ps-avatar,.ps-add-ic{width:64px;height:64px;font-size:26px}
+  .ps-item,.ps-add{width:72px}
+  .ps-name{font-size:12px}
 }
 
 /* ══════════════════════════════
@@ -806,13 +840,16 @@ if('caches' in window){
 
 <!-- ═══ PROFILE SELECTOR (estilo Netflix) ═══ -->
 <div id="profileSelect" style="display:none">
+  <button class="ps-logout-corner" id="psLogoutBtn" title="Sair da conta">&#9211; Sair</button>
   <div class="ps-wrap">
     <div class="g-logo" style="margin-bottom:48px">
       <div class="g-wordmark">Lumin</div>
     </div>
     <div class="ps-title">Quem esta a ver?</div>
     <div class="ps-grid" id="psGrid"></div>
-    <button class="ps-manage" id="psManageBtn">Gerir perfis</button>
+    <div class="ps-actions">
+      <button class="ps-manage" id="psManageBtn">Gerir perfis</button>
+    </div>
   </div>
 </div>
 
@@ -1120,6 +1157,7 @@ window.addEventListener('DOMContentLoaded',function(){
 
   // Profile selector
   G('psManageBtn').addEventListener('click',function(){PS_MANAGE_MODE=!PS_MANAGE_MODE;renderProfileGrid();});
+  G('psLogoutBtn').addEventListener('click',function(){if(confirm('Sair da conta?'))doLogout();});
 
   // Profile modal
   G('pmClose').addEventListener('click',function(){G('profileModal').style.display='none';});
@@ -1899,6 +1937,7 @@ function rMov(){
   MOV.forEach(function(m){if(m.cat&&!seen[m.cat]){seen[m.cat]=1;cats.push(m.cat);}});
   var list=MOV.filter(function(m){return(CATF==='Todos'||m.cat===CATF)&&(!Q||m.name.toLowerCase().indexOf(Q.toLowerCase())>=0);});
   var h='<div class="gview"><div class="gv-hdr">';
+  h+='<button class="back-btn" data-nav="home"><span class="back-btn-ic">&#8592;</span>Inicio</button>';
   h+='<div class="gv-title">Filmes <span class="gv-count">('+list.length+')</span></div>';
   h+='</div><div class="cats">';
   cats.slice(0,30).forEach(function(c){h+='<button class="cat-chip'+(CATF===c?' on':'')+'" data-cat="'+eH(c)+'" data-field="catF">'+eH(c)+'</button>';});
@@ -1914,6 +1953,7 @@ function rSer(){
   SER.forEach(function(s){if(s.cat&&!seen[s.cat]){seen[s.cat]=1;cats.push(s.cat);}});
   var list=SER.filter(function(s){return(SERF==='Todos'||s.cat===SERF)&&(!Q||s.name.toLowerCase().indexOf(Q.toLowerCase())>=0);});
   var h='<div class="gview"><div class="gv-hdr">';
+  h+='<button class="back-btn" data-nav="home"><span class="back-btn-ic">&#8592;</span>Inicio</button>';
   h+='<div class="gv-title">Series <span class="gv-count">('+list.length+')</span></div>';
   h+='</div><div class="cats">';
   cats.slice(0,30).forEach(function(c){h+='<button class="cat-chip'+(SERF===c?' on':'')+'" data-cat="'+eH(c)+'" data-field="serF">'+eH(c)+'</button>';});
@@ -1927,8 +1967,9 @@ function rSer(){
 function rFav(){
   var favM=MOV.filter(function(m){return FAVS.indexOf(m.id)>=0;});
   var favS=SER.filter(function(s){return FAVS.indexOf(s.id)>=0;});
-  if(!favM.length&&!favS.length)return'<div class="empty-v"><div class="ei">&#11088;</div><div class="et">Sem favoritos</div><div class="es">Clica &#9734; num filme para guardar aqui</div></div>';
-  var h='<div class="gview">';
+  var backBtn='<button class="back-btn" data-nav="home" style="margin-bottom:20px"><span class="back-btn-ic">&#8592;</span>Inicio</button>';
+  if(!favM.length&&!favS.length)return'<div class="gview">'+backBtn+'<div class="empty-v"><div class="ei">&#11088;</div><div class="et">Sem favoritos</div><div class="es">Clica &#9734; num filme para guardar aqui</div></div></div>';
+  var h='<div class="gview">'+backBtn;
   if(favM.length){h+='<div class="gv-hdr"><div class="gv-title">Filmes favoritos</div></div><div class="mgrid">';favM.forEach(function(m){h+=mcGrid(m);});h+='</div>';}
   if(favS.length){h+='<div class="gv-hdr" style="margin-top:28px"><div class="gv-title">Series favoritas</div></div><div class="sgrid">';favS.forEach(function(s){h+=scGrid(s);});h+='</div>';}
   h+='</div>';return h;
@@ -1937,12 +1978,13 @@ function rFav(){
 // ─ PESQUISA ─
 function rSrch(){
   var q=Q.toLowerCase();
-  if(!q)return'<div class="empty-v"><div class="ei">&#128269;</div><div class="et">Pesquisar</div><div class="es">Escreve o titulo do filme ou serie</div></div>';
+  var backBtn='<button class="back-btn" data-nav="home" style="margin-bottom:20px"><span class="back-btn-ic">&#8592;</span>Inicio</button>';
+  if(!q)return'<div class="srch-view">'+backBtn+'<div class="empty-v"><div class="ei">&#128269;</div><div class="et">Pesquisar</div><div class="es">Escreve o titulo do filme ou serie</div></div></div>';
   var mv=MOV.filter(function(m){return m.name.toLowerCase().indexOf(q)>=0;});
   var sr=SER.filter(function(s){return s.name.toLowerCase().indexOf(q)>=0;});
   var tot=mv.length+sr.length;
-  if(!tot)return'<div class="empty-v"><div class="ei">&#128269;</div><div class="et">Sem resultados</div><div class="es">Nenhum resultado para "'+eH(Q)+'"</div></div>';
-  var h='<div class="srch-view"><div class="srch-q">'+tot+' resultado(s) para "'+eH(Q)+'"</div>';
+  if(!tot)return'<div class="srch-view">'+backBtn+'<div class="empty-v"><div class="ei">&#128269;</div><div class="et">Sem resultados</div><div class="es">Nenhum resultado para "'+eH(Q)+'"</div></div></div>';
+  var h='<div class="srch-view">'+backBtn+'<div class="srch-q">'+tot+' resultado(s) para "'+eH(Q)+'"</div>';
   if(mv.length){h+='<div class="srch-sec"><div class="srch-sec-label">Filmes</div><div class="mgrid">';mv.slice(0,24).forEach(function(m){h+=mcGrid(m);});h+='</div></div>';}
   if(sr.length){h+='<div class="srch-sec"><div class="srch-sec-label">Series</div><div class="sgrid">';sr.slice(0,24).forEach(function(s){h+=scGrid(s);});h+='</div></div>';}
   h+='</div>';return h;
@@ -2030,78 +2072,4 @@ function startPlay(item){
   closeAllPanels();showCtrl();
   var vid=G('pvid');
   if(HLS_i){HLS_i.destroy();HLS_i=null;}
-  vid.pause();vid.removeAttribute('src');vid.load();
-  vid.src=item.url;vid.volume=VOL/100;vid.muted=MUTED;vid.load();
-  var done=false;
-  var onR=function(){if(done)return;done=true;G('pld').classList.add('off');vid.play().catch(function(){});};
-  vid.addEventListener('canplay',onR,{once:true});
-  setTimeout(function(){if(!done){done=true;vid.removeEventListener('canplay',onR);G('pld').classList.add('off');vid.play().catch(function(){onVodErr();});}},12000);
-}
-
-function onVodErr(){G('pld').classList.remove('off');G('pLdSb').textContent='';G('pLdErr').textContent='Nao foi possivel reproduzir.';G('pLdErr').style.display='block';G('pRetry').style.display='inline-block';}
-function closePlayer(){
-  var vid=G('pvid');vid.pause();vid.removeAttribute('src');vid.load();
-  if(HLS_i){HLS_i.destroy();HLS_i=null;}
-  try{if(document.pictureInPictureElement)document.exitPictureInPicture();}catch(e){}
-  if(document.fullscreenElement)document.exitFullscreen().catch(function(){});
-  G('player').style.display='none';document.body.style.overflow='';CUR=null;closeAllPanels();
-}
-function openCast(){
-  if(CUR){var n=CUR.name;G('castSub').textContent=n.length>35?n.substring(0,35)+'...':n;}
-  G('castPanel').style.display='flex';
-}
-
-// Player controls
-function togglePlay(){var vid=G('pvid');if(!vid.src)return;if(vid.paused){vid.play();G('pPlay').innerHTML='&#9208;';}else{vid.pause();G('pPlay').innerHTML='&#9654;';}}
-function toggleMute(){MUTED=!MUTED;var vid=G('pvid');vid.muted=MUTED;G('pMute').innerHTML=MUTED?'&#128263;':'&#128266;';}
-function setVol(v){VOL=+v;var vid=G('pvid');vid.volume=v/100;vid.muted=v==0;MUTED=v==0;G('pMute').innerHTML=v==0?'&#128263;':'&#128266;';}
-function seekRel(s){var vid=G('pvid');if(!vid.duration||isNaN(vid.duration))return;vid.currentTime=Math.max(0,Math.min(vid.duration,vid.currentTime+s));}
-function onTU(){var vid=G('pvid');if(!vid.duration||isNaN(vid.duration)||SCRUB)return;var p=(vid.currentTime/vid.duration)*100;G('pFill').style.width=p+'%';G('pTh').style.left=p+'%';G('pTime').textContent=fmt(vid.currentTime)+' / '+fmt(vid.duration);}
-function onProg(){var vid=G('pvid');if(!vid.duration||!vid.buffered.length)return;try{G('pBuf').style.width=(vid.buffered.end(vid.buffered.length-1)/vid.duration*100)+'%';}catch(e){}}
-function showCtrl(){G('pctrl').classList.remove('hide');clearTimeout(CTMR);CTMR=setTimeout(function(){if(!G('pvid').paused)G('pctrl').classList.add('hide');},4000);}
-function startScrub(cx){SCRUB=true;doScrub(cx);document.addEventListener('mousemove',onSM);document.addEventListener('mouseup',endScrub);document.addEventListener('touchmove',onST,{passive:true});document.addEventListener('touchend',endScrub);}
-function onSM(e){doScrub(e.clientX);}function onST(e){doScrub(e.touches[0].clientX);}
-function doScrub(cx){var rect=G('pProg').getBoundingClientRect();var p=Math.max(0,Math.min(1,(cx-rect.left)/rect.width));G('pFill').style.width=p*100+'%';G('pFill').style.transition='none';G('pTh').style.left=p*100+'%';G('pTh').style.transition='none';SCRUBV=p;}
-function endScrub(){if(!SCRUB)return;SCRUB=false;var vid=G('pvid');if(vid.duration&&!isNaN(vid.duration)){vid.currentTime=SCRUBV*vid.duration;G('pFill').style.transition='';G('pTh').style.transition='';}document.removeEventListener('mousemove',onSM);document.removeEventListener('mouseup',endScrub);document.removeEventListener('touchmove',onST);document.removeEventListener('touchend',endScrub);}
-function togPanel(show,hide){var pS=G(show),pH=G(hide);var open=pS.style.display==='block';pH.style.display='none';pS.style.display=open?'none':'block';}
-function closeAllPanels(){['pPanelQ','pPanelS'].forEach(function(p){G(p).style.display='none';});}
-function buildSpd(){
-  var cur=G('pvid').playbackRate||1;
-  G('spdList').innerHTML=SPEEDS.map(function(s){return'<div class="pp-it'+(s===cur?' on':'')+'" data-spd="'+s+'">'+s+'x</div>';}).join('');
-  G('spdList').querySelectorAll('[data-spd]').forEach(function(el){
-    el.addEventListener('click',function(){var s=parseFloat(el.getAttribute('data-spd'));G('pvid').playbackRate=s;G('pBS').textContent=s+'x';G('pPanelS').style.display='none';});
-  });
-}
-function buildQual(lvs){
-  if(!lvs||!lvs.length){G('qualList').innerHTML='<div class="pp-it on">Auto</div>';return;}
-  var h='<div class="pp-it on" id="qa-1">Auto</div>';
-  lvs.forEach(function(lv,i){var l=lv.height?lv.height+'p':(lv.bitrate?Math.round(lv.bitrate/1000)+'k':'L'+i);h+='<div class="pp-it" id="qa'+i+'">'+l+'</div>';});
-  G('qualList').innerHTML=h;
-  G('qualList').querySelectorAll('.pp-it').forEach(function(el,i){
-    el.addEventListener('click',function(){if(!HLS_i)return;HLS_i.currentLevel=i-1;G('qualList').querySelectorAll('.pp-it').forEach(function(e){e.classList.remove('on');});el.classList.add('on');G('pBQ').textContent=i===0?'AUTO':(lvs[i-1]&&lvs[i-1].height?lvs[i-1].height+'p':'Q'+(i-1));G('pPanelQ').style.display='none';});
-  });
-}
-function onKey(e){
-  if(G('player').style.display==='flex'){
-    if(e.key===' '||e.key==='k'){e.preventDefault();togglePlay();}
-    else if(e.key==='Escape')closePlayer();
-    else if(e.key==='ArrowRight'){seekRel(10);showCtrl();}
-    else if(e.key==='ArrowLeft'){seekRel(-10);showCtrl();}
-    else if(e.key==='f'||e.key==='F'){G('pFS').click();}
-    else if(e.key==='m'||e.key==='M')toggleMute();
-  }
-  if(G('detail').style.display==='flex'&&e.key==='Escape')closeDetail();
-}
-
-// ════ UTILS ════
-function addHist(it){var k=String(it.id);HIST=[it].concat(HIST.filter(function(h){return String(h.id)!==k;})).slice(0,40);saveProfileHist();}
-function togFav(id,btn){
-  var i=FAVS.indexOf(id);
-  if(i>=0){FAVS.splice(i,1);if(btn){btn.className=btn.className.replace(' on','');btn.innerHTML='&#9734;';}toast('Removido dos favoritos');}
-  else{FAVS.push(id);if(btn){btn.className+=' on';btn.innerHTML='&#9733;';}toast('Adicionado aos favoritos','ok');}
-  saveProfileFavs();
-  if(SEC==='fav')renderSec();
-}
-</script>
-</body>
-</html>
+  vid.pause();vi
