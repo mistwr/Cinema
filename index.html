@@ -1447,28 +1447,56 @@ async function loadProfiles(){
 }
 
 async function showProfileSelector(){
-  PROFILES=await loadProfiles();
+  try{
+    console.log('showProfileSelector: loading profiles for user',CURRENT_USER.id);
+    PROFILES=await loadProfiles();
+    console.log('showProfileSelector: loaded',PROFILES.length,'profiles');
 
-  // Se nao ha nenhum perfil, cria um default automaticamente
-  if(PROFILES.length===0){
-    var defaultName=(CURRENT_USER.email||'Eu').split('@')[0];
-    try{
-      var createRes=await sb.from('lumin_profiles').insert({
-        owner_user_id:CURRENT_USER.id,name:defaultName,avatar_emoji:'&#128100;',avatar_color:'#e50914',sort_order:0
-      }).select().single();
-      if(!createRes.error&&createRes.data)PROFILES=[createRes.data];
-    }catch(ex){console.error('Default profile creation failed:',ex);}
+    if(PROFILES.length===0){
+      var defaultName=(CURRENT_USER.email||'Eu').split('@')[0];
+      console.log('No profiles found, creating default:',defaultName);
+      try{
+        var createRes=await sb.from('lumin_profiles').insert({
+          owner_user_id:CURRENT_USER.id,name:defaultName,avatar_emoji:'\ud83d\udc64',avatar_color:'#e50914',sort_order:0
+        }).select().single();
+        console.log('Create default profile result:',createRes);
+        if(!createRes.error&&createRes.data){PROFILES=[createRes.data];}
+        else if(createRes.error){
+          console.error('Failed to create default profile:',createRes.error);
+          toast('Erro ao criar perfil: '+createRes.error.message,'err');
+        }
+      }catch(ex){
+        console.error('Default profile creation exception:',ex);
+        toast('Erro ao criar perfil: '+(ex.message||''),'err');
+      }
+    }
+
+    if(PROFILES.length===1){
+      console.log('Single profile, entering directly');
+      selectProfile(PROFILES[0]);
+      return;
+    }
+
+    if(PROFILES.length===0){
+      // Fallback total: entra na app sem perfil formal, para nao travar o utilizador
+      console.warn('No profiles available, entering app without profile selection');
+      G('app').style.display='flex';
+      FAVS=[];HIST=[];
+      loadAll();
+      return;
+    }
+
+    PS_MANAGE_MODE=false;
+    renderProfileGrid();
+    G('profileSelect').style.display='flex';
+  }catch(fatalEx){
+    console.error('showProfileSelector fatal error:',fatalEx);
+    toast('Erro: '+(fatalEx.message||'falha ao carregar perfis'),'err');
+    // Fallback: entra direto na app sem perfis para nao deixar o utilizador bloqueado
+    G('app').style.display='flex';
+    FAVS=[];HIST=[];
+    loadAll();
   }
-
-  // Se ha so 1 perfil, entra direto (como Netflix faz quando so existe um)
-  if(PROFILES.length===1){
-    selectProfile(PROFILES[0]);
-    return;
-  }
-
-  PS_MANAGE_MODE=false;
-  renderProfileGrid();
-  G('profileSelect').style.display='flex';
 }
 
 function renderProfileGrid(){
@@ -2012,19 +2040,4 @@ function startScrub(cx){SCRUB=true;doScrub(cx);document.addEventListener('mousem
 function onSM(e){doScrub(e.clientX);}function onST(e){doScrub(e.touches[0].clientX);}
 function doScrub(cx){var rect=G('pProg').getBoundingClientRect();var p=Math.max(0,Math.min(1,(cx-rect.left)/rect.width));G('pFill').style.width=p*100+'%';G('pFill').style.transition='none';G('pTh').style.left=p*100+'%';G('pTh').style.transition='none';SCRUBV=p;}
 function endScrub(){if(!SCRUB)return;SCRUB=false;var vid=G('pvid');if(vid.duration&&!isNaN(vid.duration)){vid.currentTime=SCRUBV*vid.duration;G('pFill').style.transition='';G('pTh').style.transition='';}document.removeEventListener('mousemove',onSM);document.removeEventListener('mouseup',endScrub);document.removeEventListener('touchmove',onST);document.removeEventListener('touchend',endScrub);}
-function togPanel(show,hide){var pS=G(show),pH=G(hide);var open=pS.style.display==='block';pH.style.display='none';pS.style.display=open?'none':'block';}
-function closeAllPanels(){['pPanelQ','pPanelS'].forEach(function(p){G(p).style.display='none';});}
-function buildSpd(){
-  var cur=G('pvid').playbackRate||1;
-  G('spdList').innerHTML=SPEEDS.map(function(s){return'<div class="pp-it'+(s===cur?' on':'')+'" data-spd="'+s+'">'+s+'x</div>';}).join('');
-  G('spdList').querySelectorAll('[data-spd]').forEach(function(el){
-    el.addEventListener('click',function(){var s=parseFloat(el.getAttribute('data-spd'));G('pvid').playbackRate=s;G('pBS').textContent=s+'x';G('pPanelS').style.display='none';});
-  });
-}
-function buildQual(lvs){
-  if(!lvs||!lvs.length){G('qualList').innerHTML='<div class="pp-it on">Auto</div>';return;}
-  var h='<div class="pp-it on" id="qa-1">Auto</div>';
-  lvs.forEach(function(lv,i){var l=lv.height?lv.height+'p':(lv.bitrate?Math.round(lv.bitrate/1000)+'k':'L'+i);h+='<div class="pp-it" id="qa'+i+'">'+l+'</div>';});
-  G('qualList').innerHTML=h;
-  G('qualList').querySelectorAll('.pp-it').forEach(function(el,i){
-    el.addEventListener('click',function(){if(!HL
+function togPanel(show,hide){var p
