@@ -1199,32 +1199,7 @@ async function recheckSubscription(){
 // ════ LOAD ════
 async function loadAll(){
   if(LOADED)return;
-  showLoad(true,'A verificar ligacao...',5);
-  var ok=false;
-  try{var r=await fetch(PROXY+'/player_api.php?username='+USR+'&password='+PWD,{cache:'no-store'});if(r.ok)ok=true;}
-  catch(ex){console.warn(ex.message);}
-
-  if(!ok){
-    showLoad(false);
-    G('content').innerHTML=
-      '<div class="cert-screen">'+
-      '<div class="cert-ic">&#128274;</div>'+
-      '<div class="cert-title">Um passo necessario</div>'+
-      '<div class="cert-text">O servidor usa um certificado proprio. Precisas de o aceitar uma vez — depois tudo funciona automaticamente.</div>'+
-      '<div style="margin-bottom:24px;text-align:left;max-width:280px">'+
-      '<div class="cert-step"><span class="cert-step-n">1.</span><span>Clica o botao abaixo</span></div>'+
-      '<div class="cert-step"><span class="cert-step-n">2.</span><span>Aceita o aviso de seguranca no browser</span></div>'+
-      '<div class="cert-step"><span class="cert-step-n">3.</span><span>Fecha a tab e clica Carregar</span></div>'+
-      '</div>'+
-      '<button class="cert-btn" id="certBtn">&#128279; Abrir servidor</button>'+
-      '<button class="cert-btn2" id="certRetry">&#128259; Ja aceitei — Carregar</button>'+
-      '</div>';
-    G('certBtn').addEventListener('click',function(){window.open(SRV,'_blank');});
-    G('certRetry').addEventListener('click',function(){LOADED=false;loadAll();});
-    return;
-  }
-
-  showLoad(true,'A carregar filmes e series...',25);
+  showLoad(true,'A carregar filmes e series...',20);
   var urls=[
     PROXY+'/get.php?username='+USR+'&password='+PWD+'&type=m3u_plus&output=ts',
     PROXY+'/get.php?username='+USR+'&password='+PWD+'&type=m3u_plus',
@@ -1240,7 +1215,14 @@ async function loadAll(){
     showLoad(true,'A processar...',88);
     parseM3U(txt);LOADED=true;
     toast(MOV.length+' filmes, '+SER.length+' series','ok');
-  } else {LOADED=true;toast('Erro ao carregar — tenta novamente','err');}
+  } else {
+    LOADED=true;
+    G('content').innerHTML='<div class="empty-v"><div class="ei">&#128225;</div><div class="et">Sem ligacao</div><div class="es">Nao foi possivel carregar o catalogo.<br>Verifica a tua ligacao a internet.</div></div>';
+    var retryBtn=document.createElement('button');
+    retryBtn.className='cert-btn';retryBtn.style.marginTop='20px';retryBtn.textContent='Tentar novamente';
+    retryBtn.addEventListener('click',function(){LOADED=false;loadAll();});
+    G('content').querySelector('.empty-v').appendChild(retryBtn);
+  }
   showLoad(false);
   renderSec();
 }
