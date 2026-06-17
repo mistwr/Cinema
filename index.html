@@ -127,22 +127,25 @@ button{cursor:pointer;border:none;background:none;color:inherit;font-family:inhe
 
 /* PAYWALL */
 #paywall{
-  position:fixed;inset:0;z-index:8500;
+  position:fixed;inset:0;z-index:8500;overflow-y:auto;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:#000;
   background-image:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(229,9,20,.18) 0%,transparent 65%);
-  padding:24px;
+  padding:40px 24px;
 }
+.pw-plans{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:28px;max-width:780px}
 .pw-card{
-  width:100%;max-width:380px;background:var(--s1);border:1px solid var(--bdr2);
-  border-radius:18px;padding:32px 28px;text-align:center;margin-top:24px;
-  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  width:100%;max-width:340px;background:var(--s1);border:1px solid var(--bdr2);
+  border-radius:18px;padding:32px 28px;text-align:center;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);position:relative;
 }
-.pw-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
-.pw-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;margin-bottom:16px}
+.pw-card-premium{border-color:rgba(245,197,24,.35);background:linear-gradient(160deg,var(--s1),rgba(245,197,24,.04))}
+.pw-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--acc);text-transform:uppercase;margin-bottom:14px}
+.pw-badge-gold{color:var(--gold)}
+.pw-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;margin-bottom:16px}
 .pw-price{margin-bottom:10px}
-.pw-amount{font-family:'Playfair Display',serif;font-size:48px;font-weight:900;color:#fff}
-.pw-period{font-size:16px;color:var(--t3)}
+.pw-amount{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;color:#fff}
+.pw-period{font-size:15px;color:var(--t3)}
 .pw-desc{font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:22px}
 .pw-features{list-style:none;text-align:left;margin-bottom:26px;display:inline-block}
 .pw-features li{font-size:13px;color:var(--t2);margin-bottom:10px;display:flex;align-items:center;gap:8px}
@@ -150,16 +153,30 @@ button{cursor:pointer;border:none;background:none;color:inherit;font-family:inhe
 .pw-btn{
   display:block;width:100%;padding:15px;background:var(--acc);border-radius:9px;
   color:#fff;font-size:15px;font-weight:700;text-decoration:none;transition:.2s;
-  box-shadow:0 4px 20px rgba(229,9,20,.4);margin-bottom:12px;
+  box-shadow:0 4px 20px rgba(229,9,20,.4);
 }
 .pw-btn:hover{background:var(--acc2)}
+.pw-btn-gold{background:var(--gold);color:#000;box-shadow:0 4px 20px rgba(245,197,24,.35)}
+.pw-btn-gold:hover{background:#ffd84d}
 .pw-refresh{
-  width:100%;padding:13px;background:rgba(255,255,255,.07);border:1px solid var(--bdr2);
+  margin-top:28px;width:100%;max-width:340px;padding:13px;background:rgba(255,255,255,.07);border:1px solid var(--bdr2);
   border-radius:9px;color:var(--t2);font-size:13px;font-weight:500;margin-bottom:10px;transition:.15s;
 }
 .pw-refresh:hover{background:rgba(255,255,255,.12);color:var(--t1)}
 .pw-logout{font-size:12px;color:var(--t3);text-decoration:underline;background:none;border:none}
 .pw-logout:hover{color:var(--t1)}
+
+/* PRICING SECTION (dentro da app, na home) */
+.pricing-sec{
+  margin:40px 0 20px;padding:40px 24px;border-radius:18px;
+  background:linear-gradient(160deg,var(--s1) 0%,#0a0a0a 100%);
+  border:1px solid var(--bdr2);text-align:center;
+  background-image:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(229,9,20,.1) 0%,transparent 60%);
+}
+.pricing-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--acc);text-transform:uppercase;margin-bottom:10px}
+.pricing-title{font-family:'Playfair Display',serif;font-size:30px;font-weight:900;margin-bottom:8px;letter-spacing:-.5px}
+.pricing-sub{font-size:13px;color:var(--t2);margin-bottom:32px}
+.pricing-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 
 .g-install{
   margin-top:20px;padding:12px 28px;
@@ -610,21 +627,38 @@ if('caches' in window){
     <div class="g-wordmark">Lumin</div>
     <div class="g-sub">O teu cinema em casa</div>
   </div>
-  <div class="pw-card">
-    <div class="pw-badge">&#11088; Acesso Premium</div>
-    <div class="pw-title">Subscreve o Lumin</div>
-    <div class="pw-price"><span class="pw-amount">5&#8364;</span><span class="pw-period">/mes</span></div>
-    <div class="pw-desc">Acesso ilimitado a todos os filmes e series.<br>Cancela quando quiseres.</div>
-    <ul class="pw-features">
-      <li>&#10003; Catalogo completo de filmes</li>
-      <li>&#10003; Series sem limites</li>
-      <li>&#10003; Transmite para a TV</li>
-      <li>&#10003; Sem anuncios</li>
-    </ul>
-    <a class="pw-btn" id="pwSubBtn" target="_blank">Subscrever agora</a>
-    <button class="pw-refresh" id="pwRefresh">Ja paguei — verificar acesso</button>
-    <button class="pw-logout" id="pwLogout">Sair da conta</button>
+  <div class="pw-plans">
+    <div class="pw-card">
+      <div class="pw-badge">&#11088; Basico</div>
+      <div class="pw-title">Plano Individual</div>
+      <div class="pw-price"><span class="pw-amount">5&#8364;</span><span class="pw-period">/mes</span></div>
+      <div class="pw-desc">Acesso ilimitado a todos os filmes e series.</div>
+      <ul class="pw-features">
+        <li>&#10003; Catalogo completo de filmes</li>
+        <li>&#10003; Series sem limites</li>
+        <li>&#10003; Transmite para a TV</li>
+        <li>&#10003; Sem anuncios</li>
+        <li>&#10003; Ate 2 utilizadores por conta</li>
+      </ul>
+      <a class="pw-btn" id="pwSubBtnBasic" target="_blank">Subscrever Basico</a>
+    </div>
+    <div class="pw-card pw-card-premium">
+      <div class="pw-badge pw-badge-gold">&#128081; Premium</div>
+      <div class="pw-title">Plano Familia</div>
+      <div class="pw-price"><span class="pw-amount">9.99&#8364;</span><span class="pw-period">/mes</span></div>
+      <div class="pw-desc">Tudo do plano Basico, para toda a familia.</div>
+      <ul class="pw-features">
+        <li>&#10003; Catalogo completo de filmes</li>
+        <li>&#10003; Series sem limites</li>
+        <li>&#10003; Transmite para a TV</li>
+        <li>&#10003; Sem anuncios</li>
+        <li>&#10003; Ate 6 utilizadores por conta</li>
+      </ul>
+      <a class="pw-btn pw-btn-gold" id="pwSubBtnPremium" target="_blank">Subscrever Premium</a>
+    </div>
   </div>
+  <button class="pw-refresh" id="pwRefresh">Ja paguei — verificar acesso</button>
+  <button class="pw-logout" id="pwLogout">Sair da conta</button>
 </div>
 
 <!-- ═══ LOADING ═══ -->
@@ -778,7 +812,8 @@ var PWD='xhma8TBna9Qx';
 // Supabase
 var SB_URL='https://yqninaripblwhcfcwwnr.supabase.co';
 var SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlxbmluYXJpcGJsd2hjZmN3d25yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MTQwODgsImV4cCI6MjA5NTA5MDA4OH0.hliWrwS-lwPx4IjSUc3DwZVlmRrSPh9qMRhDn5genAs';
-var STRIPE_LINK='https://buy.stripe.com/8x28wP1J35nw5ig0Fv5Rm08';
+var STRIPE_LINK_BASIC='https://buy.stripe.com/8x28wP1J35nw5ig0Fv5Rm08';
+var STRIPE_LINK_PREMIUM='https://buy.stripe.com/4gM6oH1J3g2a9ywbk95Rm09';
 var sb=null;
 var CURRENT_USER=null;
 
@@ -1250,7 +1285,9 @@ async function checkSubscription(){
 
 function showPaywall(){
   var email=CURRENT_USER?CURRENT_USER.email:'';
-  G('pwSubBtn').href=STRIPE_LINK+(email?('?prefilled_email='+encodeURIComponent(email)):'');
+  var q=email?('?prefilled_email='+encodeURIComponent(email)):'';
+  G('pwSubBtnBasic').href=STRIPE_LINK_BASIC+q;
+  G('pwSubBtnPremium').href=STRIPE_LINK_PREMIUM+q;
   G('paywall').style.display='flex';
 }
 
@@ -1427,7 +1464,29 @@ function rHome(){
     h+='</div></div>';
   }
 
+  h+=rPricing();
+
   h+='</div>';
+  return h;
+}
+
+function rPricing(){
+  var email=CURRENT_USER?CURRENT_USER.email:'';
+  var q=email?('?prefilled_email='+encodeURIComponent(email)):'';
+  var h='<div class="pricing-sec">';
+  h+='<div class="pricing-eyebrow">Partilha o Lumin</div>';
+  h+='<div class="pricing-title">Convida a familia ou amigos</div>';
+  h+='<div class="pricing-sub">Faz upgrade ao Premium e partilha o acesso com mais pessoas</div>';
+  h+='<div class="pricing-grid">';
+  h+='<div class="pw-card"><div class="pw-badge">&#11088; Basico</div><div class="pw-title">Individual</div>';
+  h+='<div class="pw-price"><span class="pw-amount">5&#8364;</span><span class="pw-period">/mes</span></div>';
+  h+='<div class="pw-desc">Ate 2 utilizadores por conta</div>';
+  h+='<a class="pw-btn" href="'+STRIPE_LINK_BASIC+q+'" target="_blank">Ver plano Basico</a></div>';
+  h+='<div class="pw-card pw-card-premium"><div class="pw-badge pw-badge-gold">&#128081; Premium</div><div class="pw-title">Familia</div>';
+  h+='<div class="pw-price"><span class="pw-amount">9.99&#8364;</span><span class="pw-period">/mes</span></div>';
+  h+='<div class="pw-desc">Ate 6 utilizadores por conta</div>';
+  h+='<a class="pw-btn pw-btn-gold" href="'+STRIPE_LINK_PREMIUM+q+'" target="_blank">Ver plano Premium</a></div>';
+  h+='</div></div>';
   return h;
 }
 
