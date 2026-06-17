@@ -525,6 +525,19 @@ button{cursor:pointer;border:none;background:none;color:inherit;font-family:inhe
 </style>
 </head>
 <body>
+<script>
+// Remove qualquer Service Worker antigo que possa estar a servir cache desatualizada
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(regs){
+    regs.forEach(function(reg){reg.unregister();});
+  }).catch(function(){});
+}
+if('caches' in window){
+  caches.keys().then(function(names){
+    names.forEach(function(name){caches.delete(name);});
+  }).catch(function(){});
+}
+</script>
 
 <!-- ═══ GATE: LOGIN / REGISTO ═══ -->
 <div id="gate">
