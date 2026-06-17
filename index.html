@@ -793,14 +793,28 @@ function showLoad(show,txt,pct){
 window.addEventListener('DOMContentLoaded',function(){
   try{var f=lsG('lf'),h=lsG('lh');if(f)FAVS=JSON.parse(f);if(h)HIST=JSON.parse(h);}catch(e){}
 
-  // Init Supabase client
-  sb=window.supabase.createClient(SB_URL,SB_ANON);
+  // Init Supabase client (com proteção contra CDN nao carregado)
+  try{
+    if(window.supabase&&window.supabase.createClient){
+      sb=window.supabase.createClient(SB_URL,SB_ANON);
+    } else {
+      console.error('Supabase SDK nao carregou do CDN');
+      toast('Erro ao carregar SDK. Recarrega a pagina.','err');
+    }
+  }catch(sbEx){
+    console.error('Supabase init error:',sbEx);
+    toast('Erro de inicializacao: '+sbEx.message,'err');
+  }
 
-  // Load showcase slideshow (public preview, no login needed)
-  loadShowcase();
+  // Load showcase slideshow (public preview, no login needed) - nao bloqueia o resto
+  try{loadShowcase();}catch(showEx){console.error('Showcase error:',showEx);}
 
   // Check if already logged in (session persisted)
-  checkExistingSession();
+  if(sb){
+    checkExistingSession();
+  } else {
+    G('gate').style.display='flex';
+  }
 
   // PWA
   var dP=null;
@@ -1037,13 +1051,14 @@ function startSlideshowRotation(){
 // ════ AUTH ════
 async function checkExistingSession(){
   try{
-    var {data}=await sb.auth.getSession();
-    if(data&&data.session&&data.session.user){
-      CURRENT_USER=data.session.user;
+    var res=await sb.auth.getSession();
+    console.log('Session check:',res);
+    if(res.data&&res.data.session&&res.data.session.user){
+      CURRENT_USER=res.data.session.user;
       await afterLogin();
       return;
     }
-  }catch(e){console.warn('Session check failed:',e.message);}
+  }catch(e){console.error('Session check failed:',e);}
   // No session - show login
   G('gate').style.display='flex';
   G('paywall').style.display='none';
@@ -1145,17 +1160,25 @@ async function doLogout(){
 async function afterLogin(){
   G('loginBtn').textContent='Entrar';
   G('regBtn').textContent='Criar conta';
-  // Verifica subscricao
-  var active=await checkSubscription();
-  if(active){
+  try{
+    var active=await checkSubscription();
+    if(active){
+      G('gate').style.display='none';
+      G('paywall').style.display='none';
+      G('app').style.display='flex';
+      await loadAll();
+    } else {
+      G('gate').style.display='none';
+      G('app').style.display='none';
+      showPaywall();
+    }
+  }catch(ex){
+    console.error('afterLogin error:',ex);
+    toast('Erro: '+(ex.message||'falha ao verificar conta'),'err');
+    // Fallback: mostra a app mesmo assim para nao deixar ecra vazio
     G('gate').style.display='none';
-    G('paywall').style.display='none';
     G('app').style.display='flex';
-    loadAll();
-  } else {
-    G('gate').style.display='none';
-    G('app').style.display='none';
-    showPaywall();
+    G('content').innerHTML='<div class="empty-v"><div class="ei">&#9888;</div><div class="et">Erro ao verificar conta</div><div class="es">'+eH(ex.message||'')+'</div></div>';
   }
 }
 
@@ -1199,32 +1222,40 @@ async function recheckSubscription(){
 // ════ LOAD ════
 async function loadAll(){
   if(LOADED)return;
-  showLoad(true,'A carregar filmes e series...',20);
-  var urls=[
-    PROXY+'/get.php?username='+USR+'&password='+PWD+'&type=m3u_plus&output=ts',
-    PROXY+'/get.php?username='+USR+'&password='+PWD+'&type=m3u_plus',
-    PROXY+'/get.php?username='+USR+'&password='+PWD+'&type=m3u'
-  ];
-  var txt=null;
-  for(var i=0;i<urls.length;i++){
-    showLoad(true,'A carregar...',30+i*20,'Tentativa '+(i+1)+'/3');
-    try{var rr=await fetch(urls[i],{cache:'no-store'});if(rr.ok){txt=await rr.text();if(txt&&txt.indexOf('#EXTINF')>=0)break;}}
-    catch(ex){console.warn(ex.message);}
-  }
-  if(txt&&txt.indexOf('#EXTINF')>=0){
-    showLoad(true,'A processar...',88);
-    parseM3U(txt);LOADED=true;
-    toast(MOV.length+' filmes, '+SER.length+' series','ok');
-  } else {
+  try{
+    showLoad(true,'A carregar filmes e series...',20);
+    var urls=[
+      PROXY+'/get.php?username='+USR+'&password='+PWD+'&type=m3u_plus&output=ts',
+      PROXY+'/get.php?username='+USR+'&password='+PWD+'&type=m3u_plus',
+      PROXY+'/get.php?username='+USR+'&password='+PWD+'&type=m3u'
+    ];
+    var txt=null;
+    for(var i=0;i<urls.length;i++){
+      showLoad(true,'A carregar...',30+i*20,'Tentativa '+(i+1)+'/3');
+      try{var rr=await fetch(urls[i],{cache:'no-store'});if(rr.ok){txt=await rr.text();if(txt&&txt.indexOf('#EXTINF')>=0)break;}}
+      catch(ex){console.warn('Fetch attempt failed:',ex.message);}
+    }
+    if(txt&&txt.indexOf('#EXTINF')>=0){
+      showLoad(true,'A processar...',88);
+      parseM3U(txt);LOADED=true;
+      toast(MOV.length+' filmes, '+SER.length+' series','ok');
+    } else {
+      LOADED=true;
+      G('content').innerHTML='<div class="empty-v"><div class="ei">&#128225;</div><div class="et">Sem ligacao</div><div class="es">Nao foi possivel carregar o catalogo.<br>Verifica a tua ligacao a internet.</div></div>';
+      var retryBtn=document.createElement('button');
+      retryBtn.className='cert-btn';retryBtn.style.marginTop='20px';retryBtn.textContent='Tentar novamente';
+      retryBtn.addEventListener('click',function(){LOADED=false;loadAll();});
+      var emptyV=G('content').querySelector('.empty-v');
+      if(emptyV)emptyV.appendChild(retryBtn);
+    }
+    showLoad(false);
+    renderSec();
+  }catch(fatalEx){
+    console.error('loadAll fatal error:',fatalEx);
+    showLoad(false);
     LOADED=true;
-    G('content').innerHTML='<div class="empty-v"><div class="ei">&#128225;</div><div class="et">Sem ligacao</div><div class="es">Nao foi possivel carregar o catalogo.<br>Verifica a tua ligacao a internet.</div></div>';
-    var retryBtn=document.createElement('button');
-    retryBtn.className='cert-btn';retryBtn.style.marginTop='20px';retryBtn.textContent='Tentar novamente';
-    retryBtn.addEventListener('click',function(){LOADED=false;loadAll();});
-    G('content').querySelector('.empty-v').appendChild(retryBtn);
+    G('content').innerHTML='<div class="empty-v"><div class="ei">&#9888;</div><div class="et">Erro inesperado</div><div class="es">'+eH(fatalEx.message||'')+'</div></div>';
   }
-  showLoad(false);
-  renderSec();
 }
 
 function parseM3U(txt){
